@@ -1,0 +1,83 @@
+{
+  "entity": {
+    "number": {
+      "heat_curve": {
+        "name": "Heat Curve"
+      },
+      "base_temp": {
+        "name": "Base Temperature"
+      },
+      "min_flow_temp": {
+        "name": "Min Flow Temperature"
+      },
+      "max_flow_temp": {
+        "name": "Max Flow Temperature"
+      },
+      "scale_factor": {
+        "name": "Scale Factor"
+      },
+      "exponent": {
+        "name": "Exponent"
+      },
+      "wind_coefficient": {
+        "name": "Wind Coefficient"
+      },
+      "wind_exponent": {
+        "name": "Wind Exponent"
+      },
+      "solar_coefficient": {
+        "name": "Solar Coefficient"
+      }
+    },
+    "sensor": {
+      "flow_temp": {
+        "name": "Target Flow Temperature"
+      },
+      "compensated_flow_temp": {
+        "name": "Compensated Flow Temperature"
+      },
+      "wind_adjustment": {
+        "name": "Wind Adjustment"
+      },
+      "solar_adjustment": {
+        "name": "Solar Adjustment"
+      }
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Sensors",
+        "description": "Choose the sensors to use for the compensation curve calculation. Parameters can be adjusted on the device page after setup.",
+        "data": {
+          "outdoor_temp_sensor": "Outdoor Temperature Sensor",
+          "wind_speed_sensor": "Wind Speed Sensor (optional)",
+          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)"
+        },
+        "data_description": {
+          "outdoor_temp_sensor": "Required. The sensor measuring outdoor temperature in °C.",
+          "wind_speed_sensor": "Optional. Wind speed in km/h. Leave empty to disable wind compensation.",
+          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Select Sensors",
+        "description": "Choose the sensors to use for the compensation curve calculation. Parameters can be adjusted on the device page.",
+        "data": {
+          "outdoor_temp_sensor": "Outdoor Temperature Sensor",
+          "wind_speed_sensor": "Wind Speed Sensor (optional)",
+          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)"
+        },
+        "data_description": {
+          "outdoor_temp_sensor": "Required. The sensor measuring outdoor temperature in °C.",
+          "wind_speed_sensor": "Optional. Wind speed in km/h. Leave empty to disable wind compensation.",
+          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation."
+        }
+      }
+    }
+  }
+}

@@ -2,7 +2,23 @@
 
 Temperature compensation curve equation for home heating system with Home Assistant integration.
 
-## Home Assistant Helper Equation
+## Installation Options
+
+### Custom Integration (Recommended)
+
+Install via HACS for a UI-configurable sensor with adjustable coefficients:
+
+1. Add this repo as a custom repository in HACS
+2. Install "Compensation Curve"
+3. Configure via **Settings** → **Devices & Services** → **Add Integration**
+
+See [custom_components/compcurve/](custom_components/compcurve/) for details.
+
+### Template Sensor
+
+For a simple template sensor without UI configuration, use the formula below.
+
+## Home Assistant Template Equation
 
 ```python
 {{ min(60, max(20,
