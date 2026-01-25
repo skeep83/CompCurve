@@ -6,9 +6,10 @@ Temperature compensation curve equation for home heating system with Home Assist
 
 ```python
 {{ min(60, max(20,
-    2.55 * (0.75 * max(0, 20 - float(states('sensor.gw3000a_outdoor_temperature')))) ** 0.78 + 20
-    + 0.1178 * float(states('sensor.average_wind_speed_hourly')) ** 0.898
-)) | round(0) }}
+    2.5 * (0.75 * max(0, 20 - float(states('sensor.gw3000a_outdoor_temperature')))) ** 0.8 + 20
+    + 0.25 * float(states('sensor.average_wind_speed_hourly')) ** 0.9
+    - 0.1 * float(states('sensor.average_sunlight_hourly'), 0)
+)) }}
 ```
 
 ## What is a Compensation Curve?
@@ -27,29 +28,34 @@ A compensation curve (also known as a weather compensation curve) automatically 
 
 ## Formula Breakdown
 
-**Base Formula:**<br>
-`TFlow = 2.55 × (HC × (Tset - Tout))^0.78 + Tset + WindAdjustment`
+**Base Formula:**
+`TFlow = 2.5 × (HC × (Tset - Tout))^0.8 + Tset + WindAdjustment - SolarAdjustment`
 
 ### Components
 
-1. **Non-linear base calculation**: `2.55 × (HC × (Tset - Tout))^0.78 + Tset`
+1. **Non-linear base calculation**: `2.5 × (HC × (Tset - Tout))^0.8 + Tset`
    - **HC** = Heat Curve parameter = 0.75 (adjustable 0.5-1.5)
    - **Tset** = Set/comfort temperature = 20°C
-   - **0.78** = Exponent matching radiator physics
-   - **2.55** = Scaling constant from Vaillant heat pump analysis
+   - **0.8** = Exponent matching radiator physics
+   - **2.5** = Scaling constant from Vaillant heat pump analysis
    - Creates a curved response that matches how radiators actually transfer heat
 
-2. **Wind chill compensation**: `+ 0.1178 × wind_speed^0.898`
+2. **Wind chill compensation**: `+ 0.25 × wind_speed^0.9`
    - Adds extra heating when windy (wind increases heat loss)
    - Power law provides gradual increase with diminishing returns
-   - Typically adds 0-2.5°C depending on conditions (see graph below)
-   - Tuned for +0.5°C at 5 km/h and +2.5°C at 30 km/h
+   - Typically adds 0-5°C depending on conditions (see graph below)
 
-3. **Safety limits**: `min(60, max(20, ...))`
+3. **Solar gain compensation**: `- 0.1 × sunlight`
+   - Reduces heating when sun is shining (solar gain heats the house passively)
+   - Linear relationship: heat input is proportional to solar irradiance
+   - Sunlight measured in W/m² (from `sensor.average_sunlight_hourly`)
+   - Tuned for -10°C at 100 W/m² (see table below)
+
+4. **Safety limits**: `min(60, max(20, ...))`
    - **Minimum**: 20°C (prevents system shutdown)
    - **Maximum**: 60°C (protects components and prevents scalding)
 
-4. **Rounding**: `| round(0)` → whole degree output
+5. **Default value handling**: `float(states('sensor...'), 0)` → returns 0 if sensor unavailable
 
 ## Why Non-Linear?
 
@@ -57,7 +63,7 @@ Radiator heat output is non-linear due to two heat transfer mechanisms:
 - **Radiation**: Linear relationship to temperature difference
 - **Convection**: Non-linear due to variable air flow speeds (chimney effect)
 
-The 0.78 exponent compensates for this physics, ensuring heating power remains proportional to the actual heating need across all conditions.
+The 0.8 exponent compensates for this physics, ensuring heating power remains proportional to the actual heating need across all conditions.
 
 ## Compensation Curve Visualization
 
@@ -75,20 +81,34 @@ Notice all curves are steeper at lower temperatures (more aggressive heating whe
 
 ![Wind Adjustment](wind-adjustment.svg)
 
-The wind adjustment follows a power law curve, providing moderate compensation that increases gradually with wind speed. This gives +0.5°C at 5 km/h and +2.5°C at 30 km/h, matching real-world observations of wind-induced heat loss.
+The wind adjustment follows a power law curve, providing compensation that increases gradually with wind speed, matching real-world observations of wind-induced heat loss.
+
+## Solar Gain Adjustment
+
+| Sunlight (W/m²) | Condition      | Adjustment |
+|-----------------|----------------|------------|
+| 0               | Night/Dark     | 0.0°C      |
+| 25              | Dawn/Dusk      | -2.5°C     |
+| 50              | Heavy overcast | -5.0°C     |
+| 100             | Overcast       | -10.0°C    |
+| 200             | Light clouds   | -20.0°C    |
+| 500             | Partly sunny   | -50.0°C    |
+| 1000            | Peak sun       | -100.0°C   |
+
+The solar gain uses a linear relationship (`-0.1 × sunlight`) tuned for -10°C at 100 W/m². At higher sunlight levels, the safety minimum of 20°C prevents excessive reduction. This aggressive compensation reflects significant passive heating through windows.
 
 ## Temperature Reference Table (HC = 0.75)
 
 | Outdoor Temp | Flow Temp (no wind) | 10 km/h wind | 20 km/h wind | 30 km/h wind |
 |--------------|---------------------|--------------|--------------|--------------|
-| -20°C        | 56.2°C              | 57.1°C       | 57.9°C       | 58.7°C       |
-| -10°C        | 48.9°C              | 49.9°C       | 50.7°C       | 51.4°C       |
-| -5°C         | 45.1°C              | 46.0°C       | 46.8°C       | 47.6°C       |
-| 0°C          | 41.1°C              | 42.0°C       | 42.8°C       | 43.6°C       |
-| 5°C          | 36.8°C              | 37.8°C       | 38.6°C       | 39.3°C       |
-| 10°C         | 32.3°C              | 33.2°C       | 34.0°C       | 34.8°C       |
-| 15°C         | 27.1°C              | 28.1°C       | 28.9°C       | 29.6°C       |
-| 20°C         | 20.0°C (min)        | 20.9°C       | 21.7°C       | 22.5°C       |
+| -20°C        | 58.0°C              | 60.0°C       | 60.0°C       | 60.0°C       |
+| -10°C        | 50.2°C              | 52.2°C       | 53.9°C       | 55.5°C       |
+| -5°C         | 46.1°C              | 48.1°C       | 49.8°C       | 51.4°C       |
+| 0°C          | 41.8°C              | 43.8°C       | 45.5°C       | 47.2°C       |
+| 5°C          | 37.3°C              | 39.3°C       | 41.0°C       | 42.7°C       |
+| 10°C         | 32.5°C              | 34.5°C       | 36.2°C       | 37.9°C       |
+| 15°C         | 27.2°C              | 29.2°C       | 30.9°C       | 32.5°C       |
+| 20°C         | 20.0°C (min)        | 22.0°C       | 23.7°C       | 25.3°C       |
 
 ![Table Graph](table-graph.svg)
 
