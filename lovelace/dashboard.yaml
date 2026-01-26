@@ -1,0 +1,298 @@
+# CompCurve Complete Dashboard
+# Weather Compensation Curve Visualization and Control
+#
+# Installation:
+# 1. Go to Settings → Dashboards → Add Dashboard
+# 2. Create a new dashboard from scratch
+# 3. Edit Dashboard → Raw configuration editor
+# 4. Paste this content and save
+#
+# NOTE: Replace input sensor entities with your actual sensors
+
+title: Compensation Curve
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:thermometer-water
+    badges: []
+    cards:
+      # Row 1: Main output and inputs
+      - type: horizontal-stack
+        cards:
+          # Main Output - Large gauge
+          - type: gauge
+            entity: sensor.compensation_curve_target_flow_temperature
+            name: Target Flow
+            min: 20
+            max: 60
+            severity:
+              green: 20
+              yellow: 40
+              red: 50
+            needle: true
+
+          # Current values summary
+          - type: entities
+            title: Current Values
+            icon: mdi:gauge
+            show_header_toggle: false
+            entities:
+              - entity: sensor.compensation_curve_target_flow_temperature
+                name: Target Flow Temp
+                icon: mdi:thermometer-water
+              - type: divider
+              - entity: sensor.compensation_curve_compensated_flow_temperature
+                name: Base Compensation
+                icon: mdi:thermometer
+              - entity: sensor.compensation_curve_wind_adjustment
+                name: Wind Adjustment
+                icon: mdi:thermometer-plus
+              - entity: sensor.compensation_curve_solar_adjustment
+                name: Solar Adjustment
+                icon: mdi:thermometer-minus
+
+      # Row 2: Input sensors (customize entity IDs)
+      - type: glance
+        title: Input Sensors
+        show_state: true
+        columns: 3
+        entities:
+          # Replace these with your actual sensor entity IDs
+          - entity: sensor.outdoor_temperature
+            name: Outdoor
+            icon: mdi:thermometer
+          - entity: sensor.wind_speed
+            name: Wind
+            icon: mdi:weather-windy
+          - entity: sensor.solar_irradiance
+            name: Sun
+            icon: mdi:white-balance-sunny
+
+      # Row 3: Temperature history graph
+      - type: history-graph
+        title: Temperature History (24h)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.compensation_curve_target_flow_temperature
+            name: Target Flow
+          - entity: sensor.compensation_curve_compensated_flow_temperature
+            name: Compensated
+          # Replace with your actual outdoor sensor
+          - entity: sensor.outdoor_temperature
+            name: Outdoor
+
+      # Row 4: Adjustments history
+      - type: history-graph
+        title: Adjustments History (24h)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.compensation_curve_wind_adjustment
+            name: Wind
+          - entity: sensor.compensation_curve_solar_adjustment
+            name: Solar
+
+  - title: Parameters
+    path: parameters
+    icon: mdi:tune
+    badges: []
+    cards:
+      # Row 1: Basic parameters in columns
+      - type: horizontal-stack
+        cards:
+          # Temperature Settings
+          - type: entities
+            title: Temperature Limits
+            icon: mdi:thermometer
+            show_header_toggle: false
+            entities:
+              - entity: number.compensation_curve_base_temperature
+                name: Base Temp (Tbase)
+              - entity: number.compensation_curve_min_flow_temperature
+                name: Min Flow
+              - entity: number.compensation_curve_max_flow_temperature
+                name: Max Flow
+
+          # Curve Parameters
+          - type: entities
+            title: Curve Shape
+            icon: mdi:chart-bell-curve-cumulative
+            show_header_toggle: false
+            entities:
+              - entity: number.compensation_curve_heat_curve
+                name: Heat Curve (HC)
+              - entity: number.compensation_curve_scale_factor
+                name: Scale Factor
+              - entity: number.compensation_curve_exponent
+                name: Exponent
+
+      # Row 2: Environmental compensation
+      - type: horizontal-stack
+        cards:
+          # Wind Parameters
+          - type: entities
+            title: Wind Compensation
+            icon: mdi:weather-windy
+            show_header_toggle: false
+            entities:
+              - entity: number.compensation_curve_wind_coefficient
+                name: Wind Coefficient
+              - entity: number.compensation_curve_wind_exponent
+                name: Wind Exponent
+
+          # Solar Parameters
+          - type: entities
+            title: Solar Compensation
+            icon: mdi:white-balance-sunny
+            show_header_toggle: false
+            entities:
+              - entity: number.compensation_curve_solar_coefficient
+                name: Solar Coefficient
+
+      # Row 3: Live output while adjusting
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.compensation_curve_target_flow_temperature
+            name: Target Flow
+            min: 20
+            max: 60
+            severity:
+              green: 20
+              yellow: 40
+              red: 50
+            needle: true
+
+          - type: gauge
+            entity: sensor.compensation_curve_compensated_flow_temperature
+            name: Compensated
+            min: 20
+            max: 60
+            needle: true
+
+      # Row 4: Formula reference
+      - type: markdown
+        title: Formula Reference
+        content: |
+          ## Weather Compensation Formula
+
+          ```
+          TFlow = scale × (HC × ΔT)^exp + Tbase + wind - solar
+          ```
+
+          | Variable | Formula |
+          |----------|---------|
+          | **ΔT** | max(0, Tbase - Toutdoor) |
+          | **wind** | wind_coef × wind_speed^wind_exp |
+          | **solar** | solar_coef × irradiance |
+
+          Result is clamped between Min and Max flow temperatures.
+
+          ---
+
+          ### Parameter Effects
+
+          | Parameter | Increase → |
+          |-----------|------------|
+          | **Heat Curve** | Steeper response to cold |
+          | **Scale Factor** | Higher overall temps |
+          | **Exponent** | More aggressive at extremes |
+          | **Wind Coef** | More boost in wind |
+          | **Solar Coef** | More reduction in sun |
+
+  - title: Analysis
+    path: analysis
+    icon: mdi:chart-line
+    badges: []
+    cards:
+      # Detailed history with statistics
+      - type: statistic
+        entity: sensor.compensation_curve_target_flow_temperature
+        name: Target Flow (24h)
+        stat_type: mean
+        period:
+          calendar:
+            period: day
+
+      - type: horizontal-stack
+        cards:
+          - type: statistic
+            entity: sensor.compensation_curve_target_flow_temperature
+            name: Min Flow (24h)
+            stat_type: min
+            period:
+              calendar:
+                period: day
+          - type: statistic
+            entity: sensor.compensation_curve_target_flow_temperature
+            name: Max Flow (24h)
+            stat_type: max
+            period:
+              calendar:
+                period: day
+
+      # Extended history
+      - type: history-graph
+        title: 7-Day Temperature History
+        hours_to_show: 168
+        entities:
+          - entity: sensor.compensation_curve_target_flow_temperature
+            name: Target Flow
+          - entity: sensor.outdoor_temperature
+            name: Outdoor
+
+      - type: history-graph
+        title: 7-Day Adjustments
+        hours_to_show: 168
+        entities:
+          - entity: sensor.compensation_curve_wind_adjustment
+            name: Wind
+          - entity: sensor.compensation_curve_solar_adjustment
+            name: Solar
+
+      # Attributes card showing current formula
+      - type: attribute
+        entity: sensor.compensation_curve_target_flow_temperature
+        attribute: formula
+        name: Current Formula
+        icon: mdi:function
+
+      - type: entities
+        title: All Configuration Values
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: heat_curve
+            name: Heat Curve
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: base_temp
+            name: Base Temperature
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: min_flow_temp
+            name: Min Flow Temp
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: max_flow_temp
+            name: Max Flow Temp
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: scale_factor
+            name: Scale Factor
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: exponent
+            name: Exponent
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: wind_coefficient
+            name: Wind Coefficient
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: wind_exponent
+            name: Wind Exponent
+          - type: attribute
+            entity: sensor.compensation_curve_target_flow_temperature
+            attribute: solar_coefficient
+            name: Solar Coefficient

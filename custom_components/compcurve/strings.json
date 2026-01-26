@@ -27,6 +27,9 @@
       },
       "solar_coefficient": {
         "name": "Solar Coefficient"
+      },
+      "heat_demand_coefficient": {
+        "name": "Heat Demand Coefficient"
       }
     },
     "sensor": {
@@ -41,6 +44,9 @@
       },
       "solar_adjustment": {
         "name": "Solar Adjustment"
+      },
+      "heat_demand_adjustment": {
+        "name": "Heat Demand Adjustment"
       }
     }
   },
@@ -52,12 +58,14 @@
         "data": {
           "outdoor_temp_sensor": "Outdoor Temperature Sensor",
           "wind_speed_sensor": "Wind Speed Sensor (optional)",
-          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)"
+          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)",
+          "heat_demand_sensor": "Heat Demand Sensor (optional)"
         },
         "data_description": {
           "outdoor_temp_sensor": "Required. The sensor measuring outdoor temperature in °C.",
           "wind_speed_sensor": "Optional. Wind speed in km/h. Leave empty to disable wind compensation.",
-          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation."
+          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation.",
+          "heat_demand_sensor": "Optional. Heat demand in °C (difference between target and current room temperature). Leave empty to disable heat demand compensation."
         }
       }
     }
@@ -70,12 +78,14 @@
         "data": {
           "outdoor_temp_sensor": "Outdoor Temperature Sensor",
           "wind_speed_sensor": "Wind Speed Sensor (optional)",
-          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)"
+          "sunlight_sensor": "Sunlight/Irradiance Sensor (optional)",
+          "heat_demand_sensor": "Heat Demand Sensor (optional)"
         },
         "data_description": {
           "outdoor_temp_sensor": "Required. The sensor measuring outdoor temperature in °C.",
           "wind_speed_sensor": "Optional. Wind speed in km/h. Leave empty to disable wind compensation.",
-          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation."
+          "sunlight_sensor": "Optional. Solar irradiance in W/m². Leave empty to disable solar compensation.",
+          "heat_demand_sensor": "Optional. Heat demand in °C (difference between target and current room temperature). Leave empty to disable heat demand compensation."
         }
       }
     }

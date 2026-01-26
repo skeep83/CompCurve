@@ -21,6 +21,8 @@ from homeassistant.helpers.event import async_track_state_change_event
 from .const import (
     CONF_EXPONENT,
     CONF_HEAT_CURVE,
+    CONF_HEAT_DEMAND_COEFFICIENT,
+    CONF_HEAT_DEMAND_SENSOR,
     CONF_MAX_FLOW_TEMP,
     CONF_MIN_FLOW_TEMP,
     CONF_OUTDOOR_TEMP_SENSOR,
@@ -33,6 +35,7 @@ from .const import (
     CONF_WIND_SPEED_SENSOR,
     DEFAULT_EXPONENT,
     DEFAULT_HEAT_CURVE,
+    DEFAULT_HEAT_DEMAND_COEFFICIENT,
     DEFAULT_MAX_FLOW_TEMP,
     DEFAULT_MIN_FLOW_TEMP,
     DEFAULT_SCALE_FACTOR,
@@ -109,6 +112,22 @@ async def async_setup_entry(
             ),
         )
 
+    # Only add heat demand adjustment sensor if heat demand sensor is configured
+    if config_entry.data.get(CONF_HEAT_DEMAND_SENSOR):
+        entities.append(
+            CompCurveComponentSensor(
+                coordinator,
+                CompCurveSensorEntityDescription(
+                    key="heat_demand_adjustment",
+                    name="Heat Demand Adjustment",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    icon="mdi:radiator",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    value_fn=lambda d: d.get("heat_demand_adjustment"),
+                ),
+            ),
+        )
+
     async_add_entities(entities)
 
 
@@ -128,6 +147,7 @@ class CompCurveCoordinator:
         self.outdoor_sensor = data[CONF_OUTDOOR_TEMP_SENSOR]
         self.wind_sensor = data.get(CONF_WIND_SPEED_SENSOR, "")
         self.sunlight_sensor = data.get(CONF_SUNLIGHT_SENSOR, "")
+        self.heat_demand_sensor = data.get(CONF_HEAT_DEMAND_SENSOR, "")
 
         # Get parameters with defaults
         self.heat_curve = data.get(CONF_HEAT_CURVE, DEFAULT_HEAT_CURVE)
@@ -139,6 +159,7 @@ class CompCurveCoordinator:
         self.wind_coefficient = data.get(CONF_WIND_COEFFICIENT, DEFAULT_WIND_COEFFICIENT)
         self.wind_exponent = data.get(CONF_WIND_EXPONENT, DEFAULT_WIND_EXPONENT)
         self.solar_coefficient = data.get(CONF_SOLAR_COEFFICIENT, DEFAULT_SOLAR_COEFFICIENT)
+        self.heat_demand_coefficient = data.get(CONF_HEAT_DEMAND_COEFFICIENT, DEFAULT_HEAT_DEMAND_COEFFICIENT)
 
     @property
     def device_info(self):
@@ -187,21 +208,24 @@ class CompCurveCoordinator:
 
         wind_speed = self._get_sensor_value(self.wind_sensor) or 0
         sunlight = self._get_sensor_value(self.sunlight_sensor) or 0
+        heat_demand = self._get_sensor_value(self.heat_demand_sensor) or 0
 
         # Calculate components
         temp_diff = max(0, self.base_temp - outdoor_temp)
         compensated_temp = self.scale_factor * (self.heat_curve * temp_diff) ** self.exponent + self.base_temp
         wind_adjustment = self.wind_coefficient * wind_speed ** self.wind_exponent
         solar_adjustment = self.solar_coefficient * sunlight
+        heat_demand_adjustment = self.heat_demand_coefficient * heat_demand
 
         # Calculate final temperature
-        flow_temp_raw = compensated_temp + wind_adjustment - solar_adjustment
+        flow_temp_raw = compensated_temp + wind_adjustment - solar_adjustment + heat_demand_adjustment
         flow_temp = min(self.max_flow, max(self.min_flow, flow_temp_raw))
 
         self.data = {
             "compensated_temp": round(compensated_temp, 1),
             "wind_adjustment": round(wind_adjustment, 1),
             "solar_adjustment": round(-solar_adjustment, 1),  # Negative since it reduces temp
+            "heat_demand_adjustment": round(heat_demand_adjustment, 1),
             "flow_temp": round(flow_temp, 1),
         }
 
@@ -224,6 +248,8 @@ class CompCurveCoordinator:
             entities_to_track.append(self.wind_sensor)
         if self.sunlight_sensor:
             entities_to_track.append(self.sunlight_sensor)
+        if self.heat_demand_sensor:
+            entities_to_track.append(self.heat_demand_sensor)
 
         self._unsub_tracker = async_track_state_change_event(
             self.hass,
@@ -279,7 +305,8 @@ class CompCurveMainSensor(SensorEntity):
             "wind_coefficient": c.wind_coefficient,
             "wind_exponent": c.wind_exponent,
             "solar_coefficient": c.solar_coefficient,
-            "formula": f"{c.scale_factor} × (HC × ΔT)^{c.exponent} + Tbase + {c.wind_coefficient} × wind^{c.wind_exponent} - {c.solar_coefficient} × sun",
+            "heat_demand_coefficient": c.heat_demand_coefficient,
+            "formula": f"{c.scale_factor} × (HC × ΔT)^{c.exponent} + Tbase + {c.wind_coefficient} × wind^{c.wind_exponent} - {c.solar_coefficient} × sun + {c.heat_demand_coefficient} × demand",
         }
 
     async def async_added_to_hass(self) -> None:

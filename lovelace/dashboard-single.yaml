@@ -1,0 +1,170 @@
+# CompCurve Single-Page Dashboard
+# All controls and outputs on one view
+#
+# NOTE: Replace input sensor entities with your actual sensors
+
+title: Compensation Curve
+views:
+  - title: Compensation Curve
+    path: compcurve
+    icon: mdi:thermometer-water
+    type: sections
+    max_columns: 3
+    sections:
+      # Section 1: Output
+      - type: grid
+        title: Output
+        cards:
+          - type: tile
+            entity: sensor.compensation_curve_target_flow_temperature
+            name: Target Flow Temperature
+            color: primary
+            icon: mdi:thermometer-water
+
+          - type: tile
+            entity: sensor.compensation_curve_compensated_flow_temperature
+            name: Compensated (base)
+            color: cyan
+
+          - type: tile
+            entity: sensor.compensation_curve_wind_adjustment
+            name: Wind Adjustment
+            color: blue
+
+          - type: tile
+            entity: sensor.compensation_curve_solar_adjustment
+            name: Solar Adjustment
+            color: orange
+
+      # Section 2: Inputs (customize these)
+      - type: grid
+        title: Input Sensors
+        cards:
+          # Replace with your actual sensor entities
+          - type: tile
+            entity: sensor.outdoor_temperature
+            name: Outdoor Temp
+            icon: mdi:thermometer
+
+          - type: tile
+            entity: sensor.wind_speed
+            name: Wind Speed
+            icon: mdi:weather-windy
+
+          - type: tile
+            entity: sensor.solar_irradiance
+            name: Solar
+            icon: mdi:white-balance-sunny
+
+      # Section 3: Temperature Parameters
+      - type: grid
+        title: Temperature Settings
+        cards:
+          - type: tile
+            entity: number.compensation_curve_base_temperature
+            name: Base Temp
+            features:
+              - type: numeric-input
+                mode: slider
+
+          - type: tile
+            entity: number.compensation_curve_min_flow_temperature
+            name: Min Flow
+            features:
+              - type: numeric-input
+                mode: slider
+
+          - type: tile
+            entity: number.compensation_curve_max_flow_temperature
+            name: Max Flow
+            features:
+              - type: numeric-input
+                mode: slider
+
+      # Section 4: Curve Parameters
+      - type: grid
+        title: Curve Shape
+        cards:
+          - type: tile
+            entity: number.compensation_curve_heat_curve
+            name: Heat Curve
+            features:
+              - type: numeric-input
+                mode: slider
+
+          - type: tile
+            entity: number.compensation_curve_scale_factor
+            name: Scale Factor
+            features:
+              - type: numeric-input
+                mode: slider
+
+          - type: tile
+            entity: number.compensation_curve_exponent
+            name: Exponent
+            features:
+              - type: numeric-input
+                mode: slider
+
+      # Section 5: Wind Parameters
+      - type: grid
+        title: Wind Compensation
+        cards:
+          - type: tile
+            entity: number.compensation_curve_wind_coefficient
+            name: Wind Coefficient
+            features:
+              - type: numeric-input
+                mode: slider
+
+          - type: tile
+            entity: number.compensation_curve_wind_exponent
+            name: Wind Exponent
+            features:
+              - type: numeric-input
+                mode: slider
+
+      # Section 6: Solar Parameters
+      - type: grid
+        title: Solar Compensation
+        cards:
+          - type: tile
+            entity: number.compensation_curve_solar_coefficient
+            name: Solar Coefficient
+            features:
+              - type: numeric-input
+                mode: slider
+
+      # Section 7: History
+      - type: grid
+        title: History (24h)
+        cards:
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.compensation_curve_target_flow_temperature
+                name: Target Flow
+              - entity: sensor.compensation_curve_compensated_flow_temperature
+                name: Compensated
+              - entity: sensor.outdoor_temperature
+                name: Outdoor
+
+          - type: history-graph
+            hours_to_show: 24
+            entities:
+              - entity: sensor.compensation_curve_wind_adjustment
+                name: Wind
+              - entity: sensor.compensation_curve_solar_adjustment
+                name: Solar
+
+      # Section 8: Formula
+      - type: grid
+        title: Reference
+        cards:
+          - type: markdown
+            content: |
+              **Formula:**
+              ```
+              TFlow = scale × (HC × ΔT)^exp + Tbase + wind - solar
+              ```
+              Where ΔT = max(0, Tbase - Toutdoor)

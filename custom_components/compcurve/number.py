@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import logging
 
 from homeassistant.components.number import (
     NumberEntity,
@@ -18,6 +17,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     CONF_EXPONENT,
     CONF_HEAT_CURVE,
+    CONF_HEAT_DEMAND_COEFFICIENT,
+    CONF_HEAT_DEMAND_SENSOR,
     CONF_MAX_FLOW_TEMP,
     CONF_MIN_FLOW_TEMP,
     CONF_SCALE_FACTOR,
@@ -29,6 +30,7 @@ from .const import (
     CONF_SUNLIGHT_SENSOR,
     DEFAULT_EXPONENT,
     DEFAULT_HEAT_CURVE,
+    DEFAULT_HEAT_DEMAND_COEFFICIENT,
     DEFAULT_MAX_FLOW_TEMP,
     DEFAULT_MIN_FLOW_TEMP,
     DEFAULT_SCALE_FACTOR,
@@ -38,8 +40,6 @@ from .const import (
     DEFAULT_WIND_EXPONENT,
     DOMAIN,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -173,6 +173,21 @@ SOLAR_NUMBER_DESCRIPTIONS: tuple[CompCurveNumberEntityDescription, ...] = (
     ),
 )
 
+HEAT_DEMAND_NUMBER_DESCRIPTIONS: tuple[CompCurveNumberEntityDescription, ...] = (
+    CompCurveNumberEntityDescription(
+        key="heat_demand_coefficient",
+        name="Heat Demand Coefficient",
+        icon="mdi:radiator",
+        native_min_value=0.0,
+        native_max_value=5.0,
+        native_step=0.1,
+        mode=NumberMode.SLIDER,
+        entity_category=EntityCategory.CONFIG,
+        conf_key=CONF_HEAT_DEMAND_COEFFICIENT,
+        default_value=DEFAULT_HEAT_DEMAND_COEFFICIENT,
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -200,6 +215,11 @@ async def async_setup_entry(
     # Add solar parameters only if sunlight sensor is configured
     if config_entry.data.get(CONF_SUNLIGHT_SENSOR):
         for description in SOLAR_NUMBER_DESCRIPTIONS:
+            entities.append(CompCurveNumber(coordinator, config_entry, description))
+
+    # Add heat demand parameters only if heat demand sensor is configured
+    if config_entry.data.get(CONF_HEAT_DEMAND_SENSOR):
+        for description in HEAT_DEMAND_NUMBER_DESCRIPTIONS:
             entities.append(CompCurveNumber(coordinator, config_entry, description))
 
     async_add_entities(entities)
@@ -267,5 +287,6 @@ class CompCurveNumber(NumberEntity):
             CONF_WIND_COEFFICIENT: "wind_coefficient",
             CONF_WIND_EXPONENT: "wind_exponent",
             CONF_SOLAR_COEFFICIENT: "solar_coefficient",
+            CONF_HEAT_DEMAND_COEFFICIENT: "heat_demand_coefficient",
         }
         return mapping.get(self.entity_description.conf_key, "")

@@ -1,0 +1,37 @@
+{
+  "entity": {
+    "sensor": {
+      "max_demand": {
+        "name": "Max Heat Demand"
+      }
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Radiators",
+        "description": "Choose the climate entities (radiators/thermostats) to monitor for heat demand.",
+        "data": {
+          "climate_entities": "Climate Entities"
+        },
+        "data_description": {
+          "climate_entities": "Select the radiators or thermostats to include in the heat demand calculation."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Select Radiators",
+        "description": "Choose the climate entities (radiators/thermostats) to monitor for heat demand.",
+        "data": {
+          "climate_entities": "Climate Entities"
+        },
+        "data_description": {
+          "climate_entities": "Select the radiators or thermostats to include in the heat demand calculation."
+        }
+      }
+    }
+  }
+}

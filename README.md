@@ -4,15 +4,20 @@ Temperature compensation curve equation for home heating system with Home Assist
 
 ## Installation Options
 
-### Custom Integration (Recommended)
+### Custom Integrations (Recommended)
 
-Install via HACS for a UI-configurable sensor with adjustable coefficients:
+This repository includes two Home Assistant integrations:
+
+1. **Compensation Curve** - Weather-compensated flow temperature calculator
+2. **Heat Demand** - Calculates maximum heat demand across radiators
+
+Install via HACS for UI-configurable sensors with adjustable coefficients:
 
 1. Add this repo as a custom repository in HACS
-2. Install "Compensation Curve"
+2. Install "Compensation Curve" and/or "Heat Demand"
 3. Configure via **Settings** → **Devices & Services** → **Add Integration**
 
-See [custom_components/compcurve/](custom_components/compcurve/) for details.
+See [custom_components/compcurve/](custom_components/compcurve/) and [custom_components/heat_demand/](custom_components/heat_demand/) for details.
 
 ### Template Sensor
 
@@ -25,6 +30,7 @@ For a simple template sensor without UI configuration, use the formula below.
     2.5 * (0.75 * max(0, 20 - float(states('sensor.gw3000a_outdoor_temperature')))) ** 0.8 + 20
     + 0.25 * float(states('sensor.average_wind_speed_hourly')) ** 0.9
     - 0.1 * float(states('sensor.average_sunlight_hourly'), 0)
+    + 1.0 * float(states('sensor.heat_demand_max_heat_demand'), 0)
 )) }}
 ```
 
@@ -45,7 +51,7 @@ A compensation curve (also known as a weather compensation curve) automatically 
 ## Formula Breakdown
 
 **Base Formula:**
-`TFlow = 2.5 × (HC × (Tset - Tout))^0.8 + Tset + WindAdjustment - SolarAdjustment`
+`TFlow = 2.5 × (HC × (Tset - Tout))^0.8 + Tset + WindAdjustment - SolarAdjustment + HeatDemandAdjustment`
 
 ### Components
 
@@ -67,11 +73,17 @@ A compensation curve (also known as a weather compensation curve) automatically 
    - Sunlight measured in W/m² (from `sensor.average_sunlight_hourly`)
    - Tuned for -10°C at 100 W/m² (see table below)
 
-4. **Safety limits**: `min(60, max(20, ...))`
+4. **Heat demand compensation**: `+ 1.0 × heat_demand`
+   - Increases flow temperature when rooms are below their target temperature
+   - Heat demand = max difference between target and current temperature across all radiators
+   - Use the Heat Demand integration to calculate this value automatically
+   - Coefficient of 1.0 means 1°C of demand adds 1°C to flow temperature
+
+5. **Safety limits**: `min(60, max(20, ...))`
    - **Minimum**: 20°C (prevents system shutdown)
    - **Maximum**: 60°C (protects components and prevents scalding)
 
-5. **Default value handling**: `float(states('sensor...'), 0)` → returns 0 if sensor unavailable
+6. **Default value handling**: `float(states('sensor...'), 0)` → returns 0 if sensor unavailable
 
 ## Why Non-Linear?
 

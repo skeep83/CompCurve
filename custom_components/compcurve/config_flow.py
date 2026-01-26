@@ -11,6 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_HEAT_DEMAND_SENSOR,
     CONF_OUTDOOR_TEMP_SENSOR,
     CONF_SUNLIGHT_SENSOR,
     CONF_WIND_SPEED_SENSOR,
@@ -52,6 +53,18 @@ def get_sensor_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
         )
     else:
         schema[vol.Optional(CONF_SUNLIGHT_SENSOR)] = selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor"),
+        )
+
+    if defaults.get(CONF_HEAT_DEMAND_SENSOR):
+        schema[vol.Optional(
+            CONF_HEAT_DEMAND_SENSOR,
+            default=defaults[CONF_HEAT_DEMAND_SENSOR],
+        )] = selector.EntitySelector(
+            selector.EntitySelectorConfig(domain="sensor"),
+        )
+    else:
+        schema[vol.Optional(CONF_HEAT_DEMAND_SENSOR)] = selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor"),
         )
 

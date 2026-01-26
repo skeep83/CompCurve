@@ -25,6 +25,7 @@ Weather-compensated heating flow temperature calculator for Home Assistant.
    - **Outdoor Temperature**: Required
    - **Wind Speed**: Optional (enables wind compensation)
    - **Sunlight/Irradiance**: Optional (enables solar compensation)
+   - **Heat Demand**: Optional (enables heat demand compensation - use with the Heat Demand integration)
 
 ## Adjusting Parameters
 
@@ -39,7 +40,7 @@ To change sensors, click **Configure** on the integration.
 ## Formula
 
 ```
-TFlow = scale × (HC × max(0, Tbase - Tout))^exp + Tbase + wind_coef × wind^wind_exp - solar_coef × sun
+TFlow = scale × (HC × max(0, Tbase - Tout))^exp + Tbase + wind_coef × wind^wind_exp - solar_coef × sun + demand_coef × demand
 ```
 
 Default values:
@@ -49,5 +50,15 @@ Default values:
 - Wind coefficient: 0.25
 - Wind exponent: 0.9
 - Solar coefficient: 0.1
+- Heat demand coefficient: 1.0
 
 See the main [README](../../README.md) for detailed formula documentation.
+
+## Lovelace Dashboard
+
+Pre-built dashboard cards are available in the [lovelace](../../lovelace/) folder:
+
+- **dashboard.yaml** - Complete multi-tab dashboard
+- **dashboard-single.yaml** - Single-page dashboard with sections
+
+See [lovelace/README.md](../../lovelace/README.md) for installation instructions.
