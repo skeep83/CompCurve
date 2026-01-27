@@ -15,7 +15,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .const import CONF_CLIMATE_ENTITIES, DOMAIN
+from .const import (
+    CONF_CLIMATE_ENTITIES,
+    CONF_OVERSHOOT_THRESHOLD,
+    DEFAULT_OVERSHOOT_THRESHOLD,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,6 +48,9 @@ class HeatDemandCoordinator:
 
         self.climate_entities: list[str] = config_entry.data.get(
             CONF_CLIMATE_ENTITIES, []
+        )
+        self.overshoot_threshold: float = config_entry.data.get(
+            CONF_OVERSHOOT_THRESHOLD, DEFAULT_OVERSHOOT_THRESHOLD
         )
 
     @property
@@ -96,9 +104,10 @@ class HeatDemandCoordinator:
             except (ValueError, TypeError):
                 continue
 
-        # Clip the maximum demand to never fall below zero
+        # Subtract overshoot threshold and clip to never fall below zero
+        adjusted_demand = max_diff - self.overshoot_threshold
         self.data = {
-            "max_demand": round(max(0.0, max_diff), 1),
+            "max_demand": round(max(0.0, adjusted_demand), 1),
             "individual_demands": individual_demands,
         }
 

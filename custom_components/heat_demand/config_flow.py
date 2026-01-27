@@ -10,7 +10,12 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
-from .const import CONF_CLIMATE_ENTITIES, DOMAIN
+from .const import (
+    CONF_CLIMATE_ENTITIES,
+    CONF_OVERSHOOT_THRESHOLD,
+    DEFAULT_OVERSHOOT_THRESHOLD,
+    DOMAIN,
+)
 
 
 class HeatDemandConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -42,6 +47,18 @@ class HeatDemandConfigFlow(ConfigFlow, domain=DOMAIN):
                         selector.EntitySelectorConfig(
                             domain="climate",
                             multiple=True,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_OVERSHOOT_THRESHOLD,
+                        default=DEFAULT_OVERSHOOT_THRESHOLD,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0.0,
+                            max=10.0,
+                            step=0.1,
+                            unit_of_measurement="°C",
+                            mode=selector.NumberSelectorMode.BOX,
                         ),
                     ),
                 }
@@ -78,6 +95,20 @@ class HeatDemandOptionsFlow(OptionsFlow):
                         selector.EntitySelectorConfig(
                             domain="climate",
                             multiple=True,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_OVERSHOOT_THRESHOLD,
+                        default=self._config_entry.data.get(
+                            CONF_OVERSHOOT_THRESHOLD, DEFAULT_OVERSHOOT_THRESHOLD
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0.0,
+                            max=10.0,
+                            step=0.1,
+                            unit_of_measurement="°C",
+                            mode=selector.NumberSelectorMode.BOX,
                         ),
                     ),
                 }

@@ -30,7 +30,13 @@ For each selected climate entity, the integration:
 1. Reads the `temperature` attribute (target temperature)
 2. Reads the `current_temperature` attribute
 3. Calculates the difference: `target - current`
-4. Returns the maximum difference across all entities, clipped to never fall below zero
+4. Finds the maximum difference across all entities
+5. Subtracts the **Overshoot Threshold** (default: 1°C) to prevent overshoot
+6. Returns the result, clipped to never fall below zero
+
+### Overshoot Threshold
+
+The overshoot threshold is subtracted from the calculated heat demand to prevent temperature overshoot. For example, if the maximum demand is 2.5°C and the threshold is 1°C, the reported demand will be 1.5°C. This causes the heating system to reduce output as the room approaches the target temperature, preventing overshoot.
 
 ## Output
 
