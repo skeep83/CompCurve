@@ -1,12 +1,15 @@
 {
   "domain": "compcurve",
   "name": "Compensation Curve",
-  "codeowners": ["@rawnsley"],
+  "codeowners": [
+    "@rawnsley",
+    "@skeep83"
+  ],
   "config_flow": true,
-  "documentation": "https://github.com/rawnsley/CompCurve",
+  "documentation": "https://github.com/skeep83/CompCurve",
   "integration_type": "helper",
   "iot_class": "calculated",
-  "issue_tracker": "https://github.com/rawnsley/CompCurve/issues",
+  "issue_tracker": "https://github.com/skeep83/CompCurve/issues",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

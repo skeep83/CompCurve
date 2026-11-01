@@ -4,20 +4,19 @@ Temperature compensation curve equation for home heating system with Home Assist
 
 ## Installation Options
 
-### Custom Integrations (Recommended)
+### Custom Integration (Recommended)
 
-This repository includes two Home Assistant integrations:
+> **Fork note (skeep83):** this fork of [rawnsley/CompCurve](https://github.com/rawnsley/CompCurve) (archived upstream) keeps only the **Compensation Curve** integration so HACS can install it as a single integration, and is where changes for a Deakon EVI heat pump on Tuya Local will land. The upstream *Heat Demand* integration (radiator TRV demand) was dropped; its sensor can still be wired in as the optional heat demand input from another source.
 
-1. **Compensation Curve** - Weather-compensated flow temperature calculator
-2. **Heat Demand** - Calculates maximum heat demand across radiators
+**Compensation Curve** - Weather-compensated flow temperature calculator
 
 Install via HACS for UI-configurable sensors with adjustable coefficients:
 
-1. Add this repo as a custom repository in HACS
-2. Install "Compensation Curve" and/or "Heat Demand"
+1. Add this repo as a custom repository in HACS (category *Integration*)
+2. Install "Compensation Curve"
 3. Configure via **Settings** → **Devices & Services** → **Add Integration**
 
-See [custom_components/compcurve/](custom_components/compcurve/) and [custom_components/heat_demand/](custom_components/heat_demand/) for details.
+See [custom_components/compcurve/](custom_components/compcurve/) for details.
 
 ### Template Sensor
 
